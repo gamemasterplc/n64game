@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nusys.h>
+#include <ultra64.h>
 #include "bool.h"
 
 void PadInit();

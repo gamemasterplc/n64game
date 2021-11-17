@@ -1,3 +1,4 @@
+#include <nusys.h>
 #include "pad.h"
 
 static u8 connected_pads;

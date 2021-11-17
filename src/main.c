@@ -1,6 +1,7 @@
 #include "gfx.h"
 #include "fs.h"
 #include "state.h"
+#include "pad.h"
 
 #define DEFINE_STATE(_0, name) extern StateEntry name##_StateData;
 #include "state_table.h"
@@ -23,6 +24,7 @@ void SetNextState(StateIndex state)
 void mainproc()
 {
 	GfxInit();
+	PadInit();
 	FSInit();
 	next_state = STATE_GAME;
 	while(1) {
@@ -30,8 +32,9 @@ void mainproc()
 		StateEntry *state = states[curr_state];
 		state->init();
 		while(next_state == curr_state) {
-			GfxStartFrame();
+			PadUpdate();
 			state->main();
+			GfxStartFrame();
 			state->draw();
 			GfxEndFrame();
 		}

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gfx.h"
+
 #define IMG_FMT_I4 0
 #define IMG_FMT_I8 1
 #define IMG_FMT_IA4 2

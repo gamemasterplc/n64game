@@ -151,11 +151,11 @@ int snprintf(char *str, size_t n, const char *format, ...)
 int vsprintf(char *str, const char *format, va_list arg)
 {
 	int written;
-    written = _Printf(WriteBuf, str, format, arg);
-    if (written >= 0) {
-        str[written] = 0;
-    }
-    return written;
+	written = _Printf(WriteBuf, str, format, arg);
+	if (written >= 0) {
+		str[written] = 0;
+	}
+	return written;
 }
 
 void vprintf(const char *format, va_list arg)

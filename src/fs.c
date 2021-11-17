@@ -12,8 +12,8 @@ extern u8 fsdata_start[];
 //Struct declarations for FS data
 typedef struct fs_entry {
 	char *name;
-    u32 rom_ofs;
-    u32 len;
+	u32 rom_ofs;
+	u32 len;
 } FSEntry;
 
 typedef struct fs_header {

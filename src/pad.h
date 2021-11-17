@@ -3,8 +3,6 @@
 #include <nusys.h>
 #include "bool.h"
 
-extern NUContData pad_data[NU_CONT_MAXCONTROLLERS];
-
 void PadInit();
 void PadUpdate();
 bool PadIsConnected(int pad_num);

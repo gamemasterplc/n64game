@@ -90,19 +90,19 @@ static void UpdateShipImage()
 	ClearShipImage();
 	c = cosf(ship.angle*M_DTOR);
 	s = sinf(ship.angle*M_DTOR);
-	//Rotate (0, -7) to ship image
-	x1 = (0*c)-(-(SHIP_W/3)*s);
-	y1 = (0*s)+(-(SHIP_H/3)*c);
+	//Rotate (0, -14) to ship image
+	x1 = (0*c)-(-((SHIP_H*2)/3)*s);
+	y1 = (0*s)+(-((SHIP_H*2)/3)*c);
 	x1 += SHIP_IMAGE_W/2;
 	y1 += SHIP_IMAGE_H/2;
-	//Rotate (-8, 14) to ship image
-	x2 = (-(SHIP_W/2)*c)-(((SHIP_H*2)/3)*s);
-	y2 = (-(SHIP_W/2)*s)+(((SHIP_H*2)/3)*c);
+	//Rotate (-8, 7) to ship image
+	x2 = (-(SHIP_W/2)*c)-((SHIP_H/3)*s);
+	y2 = (-(SHIP_W/2)*s)+((SHIP_H/3)*c);
 	x2 += SHIP_IMAGE_W/2;
 	y2 += SHIP_IMAGE_H/2;
-	//Rotate (8, 14) to ship image
-	x3 = ((SHIP_W/2)*c)-(((SHIP_H*2)/3)*s);
-	y3 = ((SHIP_W/2)*s)+(((SHIP_H*2)/3)*c);
+	//Rotate (8, 7) to ship image
+	x3 = ((SHIP_W/2)*c)-((SHIP_H/3)*s);
+	y3 = ((SHIP_W/2)*s)+((SHIP_H/3)*c);
 	x3 += SHIP_IMAGE_W/2;
 	y3 += SHIP_IMAGE_H/2;
 	//Draw ship edges

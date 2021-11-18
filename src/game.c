@@ -39,7 +39,7 @@ static void DrawShipLine(int x0, int y0, int x1, int y1)
 	int err = dx + dy;
 	int e2;
 	while(1) {
-		data[(y0*SHIP_IMAGE_W)+x0] = 0xFF;
+		data[(y0*SHIP_IMAGE_W)+x0] = 0xFF; //Write white
 		if (x0 == x1 && y0 == y1) {
 			break;
 		}
@@ -75,6 +75,7 @@ static void UpdateShipImage()
 	y3 = (SHIP_HALF_W*s)+(SHIP_HALF_H*c);
 	x3 += SHIP_IMAGE_W/2;
 	y3 += SHIP_IMAGE_H/2;
+	//Draw ship edges
 	DrawShipLine(x1, y1, x2, y2);
 	DrawShipLine(x1, y1, x3, y3);
 	DrawShipLine(x2, y2, x3, y3);

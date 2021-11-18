@@ -180,3 +180,16 @@ int abs(int x)
 	}
 	return x;
 }
+
+static unsigned int rand_state;
+
+void srand(unsigned int seed)
+{
+	rand_state = seed;
+}
+
+int rand()
+{
+	rand_state = (rand_state*1103515245)+12345;
+	return rand_state%RAND_MAX;
+}

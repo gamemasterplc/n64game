@@ -1,5 +1,7 @@
 #pragma once
 
+#define RAND_MAX 2147483647
+
 #include <ultra64.h>
 #include <stdarg.h>
 
@@ -16,3 +18,5 @@ int vsprintf(char *str, const char *format, va_list arg);
 void vprintf(const char *format, va_list arg);
 void printf(const char *format, ...);
 int abs(int x);
+void srand(unsigned int seed);
+int rand();

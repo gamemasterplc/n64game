@@ -169,6 +169,10 @@ void GfxSetClearColor(u8 r, u8 g, u8 b)
 
 void GfxSetScissor(int x, int y, int w, int h)
 {
+	//Don't set fully offscreen scissor
+	if(x < -w || y < -h) {
+		return;
+	}
 	//Clamp rect to screen
 	if(x < 0) {
 		w += x;
@@ -245,6 +249,9 @@ void GfxSetRenderMode(GfxRenderMode mode)
 
 void GfxPutRect(int x, int y, int w, int h, u32 color)
 {
+	if(x < -w || y < -h) {
+		return;
+	}
 	//Get color channels
 	u8 r = (color >> 24) & 0xFF;
 	u8 g = (color >> 16) & 0xFF;

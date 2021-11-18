@@ -6,11 +6,14 @@
 #include "bool.h"
 #include "libcext.h"
 
+#define BULLET_MAX_TIME 300
+#define BULLET_VEL 15.0f
+#define MAX_BULLETS 50
 
 #define SHIP_IMAGE_W 32
 #define SHIP_IMAGE_H 32
-#define SHIP_HALF_W 8
-#define SHIP_HALF_H 12
+#define SHIP_W 16
+#define SHIP_H 24
 #define SHIP_THRUST 0.1f
 #define SHIP_ROT_SPEED 0.09f
 #define SHIP_MAX_VEL 7.0f
@@ -22,9 +25,20 @@ typedef struct ship {
 	float y;
 	float vel_x;
 	float vel_y;
+	bool update_image;
 } Ship;
 
+typedef struct bullet {
+	bool exists;
+	int timer; //Disappears when zero
+	float x;
+	float y;
+	float vel_x;
+	float vel_y;
+} Bullet;
+
 static Ship ship;
+static Bullet bullets[MAX_BULLETS];
 
 static void StateInit()
 {
@@ -32,6 +46,7 @@ static void StateInit()
 	ship.x = GfxGetWidth()/2;
 	ship.y = GfxGetHeight()/2;
 	ship.angle = 0;
+	ship.update_image = true;
 	ship.vel_x = ship.vel_y = 0;
 }
 
@@ -71,23 +86,23 @@ static void DrawShipLine(int x0, int y0, int x1, int y1)
 static void UpdateShipImage()
 {
 	float c, s;
-	float x1, y1, x2, y2, x3, y3;
+	int x1, y1, x2, y2, x3, y3;
 	ClearShipImage();
 	c = cosf(ship.angle*M_DTOR);
 	s = sinf(ship.angle*M_DTOR);
 	//Rotate (0, -12) to ship image
-	x1 = (0*c)-(-SHIP_HALF_H*s);
-	y1 = (0*s)+(-SHIP_HALF_H*c);
+	x1 = (0*c)-(-(SHIP_W/2)*s);
+	y1 = (0*s)+(-(SHIP_H/2)*c);
 	x1 += SHIP_IMAGE_W/2;
 	y1 += SHIP_IMAGE_H/2;
 	//Rotate (-8, 12) to ship image
-	x2 = (-SHIP_HALF_W*c)-(SHIP_HALF_H*s);
-	y2 = (-SHIP_HALF_W*s)+(SHIP_HALF_H*c);
+	x2 = (-(SHIP_W/2)*c)-((SHIP_H/2)*s);
+	y2 = (-(SHIP_W/2)*s)+((SHIP_H/2)*c);
 	x2 += SHIP_IMAGE_W/2;
 	y2 += SHIP_IMAGE_H/2;
 	//Rotate (8, 12) to ship image
-	x3 = (SHIP_HALF_W*c)-(SHIP_HALF_H*s);
-	y3 = (SHIP_HALF_W*s)+(SHIP_HALF_H*c);
+	x3 = ((SHIP_W/2)*c)-((SHIP_H/2)*s);
+	y3 = ((SHIP_W/2)*s)+((SHIP_H/2)*c);
 	x3 += SHIP_IMAGE_W/2;
 	y3 += SHIP_IMAGE_H/2;
 	//Draw ship edges
@@ -116,15 +131,38 @@ static void WrapPos(int margin_x, int margin_y, float *x, float *y)
 	}
 }
 
+static void CreateBullet()
+{
+	int i;
+	for(i=0; i<MAX_BULLETS; i++) {
+		if(!bullets[i].exists) {
+			break;
+		}
+	}
+	if(i == MAX_BULLETS) {
+		return;
+	}
+	bullets[i].timer = BULLET_MAX_TIME;
+	bullets[i].x = ship.x;
+	bullets[i].y = ship.y;
+	bullets[i].vel_x = BULLET_VEL*sinf(ship.angle*M_DTOR);
+	bullets[i].vel_y = -BULLET_VEL*cosf(ship.angle*M_DTOR);
+	bullets[i].exists = true;
+}
+
 static void UpdateShip()
 {
 	s8 stick_x = PadGetStickX(0);
 	if(stick_x < -16 || stick_x > 16) {
 		ship.angle += stick_x*SHIP_ROT_SPEED;
+		ship.update_image = true;
 	}
 	if(PadGetHeldButtons(0) & A_BUTTON) {
 		ship.vel_x += sinf(ship.angle*M_DTOR)*SHIP_THRUST;
 		ship.vel_y += -cosf(ship.angle*M_DTOR)*SHIP_THRUST;
+	}
+	if(PadGetPressedButtons(0) & B_BUTTON) {
+		CreateBullet();
 	}
 	if(ship.vel_x < -SHIP_MAX_VEL) {
 		ship.vel_x = -SHIP_MAX_VEL;
@@ -141,12 +179,32 @@ static void UpdateShip()
 	ship.x += ship.vel_x;
 	ship.y += ship.vel_y;
 	WrapPos(SHIP_IMAGE_W/2, SHIP_IMAGE_H/2, &ship.x, &ship.y);
-	UpdateShipImage();
+	if(ship.update_image) {
+		UpdateShipImage();
+		ship.update_image = false;
+	}
+}
+
+static void UpdateBullets()
+{
+	for(int i=0; i<MAX_BULLETS; i++) {
+		if(bullets[i].exists) {
+			bullets[i].timer--;
+			if(bullets[i].timer == 0) {
+				bullets[i].exists = false;
+				continue;
+			}
+			bullets[i].x += bullets[i].vel_x;
+			bullets[i].y += bullets[i].vel_y;
+			WrapPos(0, 0, &bullets[i].x, &bullets[i].y);
+		}
+	}
 }
 
 static void StateMain()
 {
 	UpdateShip();
+	UpdateBullets();
 }
 
 static void PutSpriteCenter(N64Image *image, float x, float y)
@@ -154,9 +212,19 @@ static void PutSpriteCenter(N64Image *image, float x, float y)
 	ImagePut(image, x-(image->w/2), y-(image->h/2));
 }
 
+static void DrawBullets()
+{
+	for(int i=0; i<MAX_BULLETS; i++) {
+		if(bullets[i].exists) {
+			GfxPutRect(bullets[i].x, bullets[i].y, 1, 1, GFX_COLOR_WHITE);
+		}
+	}
+}
+
 static void StateDraw()
 {
 	PutSpriteCenter(ship.image, ship.x, ship.y);
+	DrawBullets();
 }
 
 static void StateDestroy()

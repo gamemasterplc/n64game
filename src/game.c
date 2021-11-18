@@ -58,9 +58,7 @@ static void DrawImageLine(N64Image *image, int x0, int y0, int x1, int y1)
 	int err = dx + dy;
 	int e2;
 	while(1) {
-		if(x0 >= 0 && y0 >= 0 && x0 < image->w && y0 < image->h) {
-			data[(y0*image->w)+x0] = 0xFF; //Write white
-		}
+		data[(y0*image->w)+x0] = 0xFF; //Write white
 		if (x0 == x1 && y0 == y1) {
 			break;
 		}
@@ -131,10 +129,10 @@ static void GenerateAsteroidImages()
 			//Refresh asteroid
 			ImageFlushData(asteroid_images[i][j]);
 			//Goto next side of asteroid
-			RotatePoints(90.0f/(ASTEROID_ROT_STEPS/4), size/2, size/2, side_x, side_y, ASTEROID_SIDE_COUNT+1);
+			RotatePoints(90.0f/((ASTEROID_ROT_STEPS/4)-1), size/2, size/2, side_x, side_y, ASTEROID_SIDE_COUNT+1);
 		}
 		//Unrotate asteroid
-		RotatePoints(-90.0f, size/2, size/2, side_x, side_y, ASTEROID_SIDE_COUNT+1);
+		RotatePoints(-90.0f-(90.0f/((ASTEROID_ROT_STEPS/4)-1)), size/2, size/2, side_x, side_y, ASTEROID_SIDE_COUNT+1);
 		for(int j=0; j<ASTEROID_SIDE_COUNT+1; j++) {
 			//Halve side coordinates
 			side_x[j] /= 2;

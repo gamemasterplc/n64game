@@ -116,7 +116,7 @@ endef
 default: $(ROM)
 
 clean:
-	$(RM) -r $(BUILD_DIR)
+	$(RM) -r $(BUILD_DIR) $(addprefix $(FILESYSTEM_ROOT)/,$(GFX_DIRS))
 
 distclean: clean
 	$(MAKE) -C $(TOOLS_DIR) clean

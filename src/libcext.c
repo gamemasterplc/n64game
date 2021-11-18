@@ -172,3 +172,11 @@ void printf(const char *format, ...)
 	vprintf(format, arg);
 	va_end(arg);
 }
+
+int abs(int x)
+{
+	if(x < 0) {
+		return -x;
+	}
+	return x;
+}

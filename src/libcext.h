@@ -15,3 +15,4 @@ int snprintf(char *str, size_t n, const char *format, ...);
 int vsprintf(char *str, const char *format, va_list arg);
 void vprintf(const char *format, va_list arg);
 void printf(const char *format, ...);
+int abs(int x);

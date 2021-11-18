@@ -46,11 +46,6 @@ SRC_DIRS += src asm
 C_FILES := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 S_FILES := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.s))
 
-GFX_DIRS := gfx
-GFX_FILES := $(foreach dir,$(GFX_DIRS),$(wildcard $(dir)/*.png))
-
-GFX_OUTFILES := $(foreach file,$(GFX_FILES),data/$(file:.png=.img))
-
 SRC_OBJECTS := $(foreach file,$(C_FILES),$(BUILD_DIR)/$(file:.c=.o)) \
 			$(foreach file,$(S_FILES),$(BUILD_DIR)/$(file:.s=.o))
 			
@@ -62,6 +57,11 @@ O_FILES := $(SRC_OBJECTS) \
 FILESYSTEM := $(BUILD_DIR)/filesystem.bin
 FILESYSTEM_HEADER := $(BUILD_DIR)/filesystem.fsh
 FILESYSTEM_ROOT := data
+
+GFX_DIRS := gfx
+GFX_FILES := $(foreach dir,$(GFX_DIRS),$(wildcard $(dir)/*.png))
+
+GFX_OUTFILES := $(foreach file,$(GFX_FILES),$(FILESYSTEM_ROOT)/$(file:.png=.img))
 
 # Automatic dependency files
 DEP_FILES := $(SRC_OBJECTS:.o=.d) $(BUILD_DIR)/$(LD_SCRIPT).d
@@ -121,7 +121,7 @@ clean:
 distclean: clean
 	$(MAKE) -C $(TOOLS_DIR) clean
 
-ALL_DIRS := $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SRC_DIRS)) $(addprefix data/,$(GFX_DIRS))
+ALL_DIRS := $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SRC_DIRS)) $(addprefix $(FILESYSTEM_ROOT)/,$(GFX_DIRS))
 
 # Make sure build directory exists before compiling anything
 DUMMY != mkdir -p $(ALL_DIRS)

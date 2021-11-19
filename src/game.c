@@ -179,7 +179,7 @@ static void InitShip()
 	ResetShip();
 }
 
-static void InitBullets()
+static void ResetBullets()
 {
 	for(int i=0; i<MAX_BULLETS; i++) {
 		bullets[i].exists = false;
@@ -217,9 +217,10 @@ static void InitAsteroids()
 
 static void StateInit()
 {
+	GfxSetScreenSize(424, 240);
 	GenerateAsteroidImages();
 	InitShip();
-	InitBullets();
+	ResetBullets();
 	InitAsteroids();
 }
 
@@ -409,6 +410,7 @@ static void UnclearField()
 		}
 	}
 	if(field_empty) {
+		ResetBullets();
 		float s = cosf(ship.angle*M_DTOR);
 		float c = sinf(ship.angle*M_DTOR);
 		MakeAsteroid(0, -(s*ASTEROID_RESPAWN_RADIUS)+ship.x, (c*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);

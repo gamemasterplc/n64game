@@ -409,10 +409,10 @@ static void UnclearField()
 		}
 	}
 	if(field_empty) {
-		float s = cosf(ship.angle);
-		float c = sinf(ship.angle);
-		MakeAsteroid(0, -(c*ASTEROID_RESPAWN_RADIUS)+ship.x, -(s*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);
-		MakeAsteroid(0, (c*ASTEROID_RESPAWN_RADIUS)+ship.x, (s*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);
+		float s = cosf(ship.angle*M_DTOR);
+		float c = sinf(ship.angle*M_DTOR);
+		MakeAsteroid(0, -(s*ASTEROID_RESPAWN_RADIUS)+ship.x, (c*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);
+		MakeAsteroid(0, (s*ASTEROID_RESPAWN_RADIUS)+ship.x, -(c*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);
 	}
 }
 

@@ -317,11 +317,6 @@ static void UpdateShip()
 	ship.y += ship.vel_y;
 	//Wrap ship
 	WrapPos(SHIP_IMAGE_W/2, SHIP_IMAGE_H/2, &ship.x, &ship.y);
-	if(ship.update_image) {
-		//Refresh ship if needed
-		UpdateShipImage();
-		ship.update_image = false;
-	}
 	for(int i=0; i<MAX_ASTEROIDS; i++) {
 		if(asteroids[i].exists) {
 			float size = ASTEROID_SIZE >> asteroids[i].size;
@@ -330,7 +325,11 @@ static void UpdateShip()
 				ResetShip();
 			}
 		}
-		
+	}
+	if(ship.update_image) {
+		//Refresh ship if needed
+		UpdateShipImage();
+		ship.update_image = false;
 	}
 }
 

@@ -30,10 +30,14 @@
 #define SHIP_INVULNERABLE_LEN 60
 #define SHIP_NUM_LIVES 5
 
+#define TEXT_H 12
+
 #define SCORE_X 22
 #define SCORE_Y 16
 #define LIFE_X 22
-#define LIFE_Y 28
+#define LIFE_Y SCORE_Y+TEXT_H
+
+#define RETRY_Y_OFFSET 16
 
 typedef struct ship {
 	N64Image *image;
@@ -70,6 +74,9 @@ static Ship ship;
 static N64Image *life_icon;
 static N64Image *life_cross;
 static N64Image *digits;
+static N64Image *game_over;
+static N64Image *text_exit;
+static N64Image *text_retry;
 static N64Image *asteroid_images[ASTEROID_NUM_SIZES][ASTEROID_ROT_STEPS];
 static Asteroid asteroids[MAX_ASTEROIDS];
 static Bullet bullets[MAX_BULLETS];
@@ -238,6 +245,9 @@ static void StateInit()
 	life_icon = ImageLoad("/gfx/life_icon.i8.img");
 	life_cross = ImageLoad("/gfx/life_cross.i8.img");
 	digits = ImageLoad("/gfx/digits.i8.img");
+	game_over =  ImageLoad("/gfx/game_over.i8.img");
+	text_exit =  ImageLoad("/gfx/text_exit.i8.img");
+	text_retry =  ImageLoad("/gfx/text_retry.i8.img");
 }
 
 static void WrapPos(int margin_x, int margin_y, float *x, float *y)
@@ -454,6 +464,12 @@ static void StateMain()
 		UnclearField();
 	} else {
 		UpdateAsteroids();
+		if(PadGetPressedButtons(0) & A_BUTTON) {
+			ship.lives = SHIP_NUM_LIVES;
+			score = 0;
+			ResetShip();
+			InitAsteroids();
+		}
 	}
 }
 
@@ -499,7 +515,7 @@ static void DrawLives()
 	sprintf(life_str, "%u", ship.lives);
 	life_len = strlen(life_str);
 	for(int i=0; i<life_len; i++) {
-		ImagePutPartial(digits, LIFE_X+20+(i*8), LIFE_Y+3, (life_str[i]-'0')*8, 0, 8, 12);
+		ImagePutPartial(digits, LIFE_X+20+(i*8), LIFE_Y+3, (life_str[i]-'0')*8, 0, 8, TEXT_H);
 	}
 }
 
@@ -510,7 +526,7 @@ static void DrawScore()
 	sprintf(score_str, "%u", score);
 	score_len = strlen(score_str);
 	for(int i=0; i<score_len; i++) {
-		ImagePutPartial(digits, SCORE_X+(i*8), SCORE_Y, (score_str[i]-'0')*8, 0, 8, 12);
+		ImagePutPartial(digits, SCORE_X+(i*8), SCORE_Y, (score_str[i]-'0')*8, 0, 8, TEXT_H);
 	}
 }
 
@@ -523,7 +539,7 @@ static void DrawHighScore()
 	score_len = strlen(score_str);
 	x_pos = (GfxGetWidth()-(8*score_len))/2;
 	for(int i=0; i<score_len; i++) {
-		ImagePutPartial(digits, x_pos+(i*8), SCORE_Y, (score_str[i]-'0')*8, 0, 8, 12);
+		ImagePutPartial(digits, x_pos+(i*8), SCORE_Y, (score_str[i]-'0')*8, 0, 8, TEXT_H);
 	}
 }
 
@@ -537,6 +553,13 @@ static void StateDraw()
 	DrawLives();
 	DrawScore();
 	DrawHighScore();
+	if(ship.lives <= 0) {
+		int scr_w = GfxGetWidth();
+		int scr_h = GfxGetHeight();
+		PutSpriteCenter(game_over,scr_w/2, scr_h/2, GFX_COLOR_WHITE);
+		PutSpriteCenter(text_exit, scr_w/2, (scr_h-RETRY_Y_OFFSET-(TEXT_H/2)), GFX_COLOR_WHITE);
+		PutSpriteCenter(text_retry, scr_w/2, (scr_h-RETRY_Y_OFFSET-((TEXT_H*3)/2)), GFX_COLOR_WHITE);
+	}
 }
 
 static void DeleteAsteroidImages()
@@ -560,6 +583,12 @@ static void StateDestroy()
 	life_cross = NULL;
 	ImageDelete(digits);
 	digits = NULL;
+	ImageDelete(game_over);
+	game_over = NULL;
+	ImageDelete(text_exit);
+	text_exit = NULL;
+	ImageDelete(text_retry);
+	text_retry = NULL;
 }
 
 StateEntry Game_StateData = {

@@ -2,6 +2,7 @@
 #include "fs.h"
 #include "state.h"
 #include "pad.h"
+#include "save.h"
 
 #define DEFINE_STATE(_0, name) extern StateEntry name##_StateData;
 #include "state_table.h"
@@ -16,7 +17,7 @@ static StateEntry *states[] = {
 static volatile StateIndex curr_state;
 static volatile StateIndex next_state;
 
-void SetNextState(StateIndex state)
+void StateSetNext(StateIndex state)
 {
 	next_state = state;
 }
@@ -25,8 +26,12 @@ void mainproc()
 {
 	GfxInit();
 	PadInit();
+	SaveInit();
 	FSInit();
-	next_state = STATE_GAME;
+	next_state = STATE_TITLE;
+	if(SaveGetWide()) {
+		GfxSetScreenSize(424, 240);
+	}
 	while(1) {
 		curr_state = next_state;
 		StateEntry *state = states[curr_state];

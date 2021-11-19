@@ -20,4 +20,4 @@ typedef enum state_index {
 
 #undef DEFINE_STATE
 
-void SetNextState(StateIndex state);
+void StateSetNext(StateIndex state);

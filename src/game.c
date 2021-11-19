@@ -3,6 +3,7 @@
 #include "game.h"
 #include "gfx.h"
 #include "pad.h"
+#include "save.h"
 #include "libcext.h"
 
 static Ship ship;
@@ -16,7 +17,6 @@ static N64Image *asteroid_images[ASTEROID_NUM_SIZES][ASTEROID_ROT_STEPS];
 static Asteroid asteroids[MAX_ASTEROIDS];
 static Bullet bullets[MAX_BULLETS];
 static unsigned int score;
-static unsigned int high_score = 0;
 
 static void DrawImageLine(N64Image *image, int x0, int y0, int x1, int y1)
 {
@@ -292,8 +292,8 @@ static void UpdateShip()
 					if(ship.lives > 0) {
 						ResetShip();
 					} else {
-						if(score > high_score) {
-							high_score = score;
+						if(score > SaveGetHighScore()) {
+							SaveSetHighScore(score);
 						}
 						ClearBullets();
 					}
@@ -405,7 +405,8 @@ static void StateMain()
 			ResetShip();
 			InitAsteroids();
 		} else if(PadGetPressedButtons(0) & B_BUTTON) {
-			
+			SaveUpdate();
+			StateSetNext(STATE_TITLE);
 		}
 	}
 }
@@ -472,7 +473,7 @@ static void DrawHighScore()
 	char score_str[11];
 	int score_len;
 	int x_pos;
-	sprintf(score_str, "%u", high_score);
+	sprintf(score_str, "%u", SaveGetHighScore());
 	score_len = strlen(score_str);
 	x_pos = (GfxGetWidth()-(8*score_len))/2;
 	for(int i=0; i<score_len; i++) {

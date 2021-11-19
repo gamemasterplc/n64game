@@ -6,11 +6,15 @@
 #include "bool.h"
 #include "libcext.h"
 
+#define ASTEROID_RESPAWN_RADIUS 64
+#define ASTEROID_VEL 1.0f
 #define ASTEROID_NUM_SIZES 3
 #define ASTEROID_SIZE 64
 #define ASTEROID_ROT_STEPS 64
+#define ASTEROID_ROT_DELAY 3
 #define ASTEROID_SIDE_COUNT 16
 #define ASTEROID_RAD_NOISE 0.4
+#define MAX_ASTEROIDS (2 << (ASTEROID_NUM_SIZES-1))
 
 #define BULLET_MAX_TIME 300
 #define BULLET_VEL 7.5f
@@ -43,17 +47,28 @@ typedef struct bullet {
 	float vel_y;
 } Bullet;
 
+typedef struct asteroid {
+	bool exists;
+	int size;
+	int exist_timer;
+	float x;
+	float y;
+	float vel_x;
+	float vel_y;
+} Asteroid;
+
 static Ship ship;
-static N64Image *asteroid_images[ASTEROID_NUM_SIZES][ASTEROID_ROT_STEPS/4];
+static N64Image *asteroid_images[ASTEROID_NUM_SIZES][ASTEROID_ROT_STEPS];
+static Asteroid asteroids[MAX_ASTEROIDS];
 static Bullet bullets[MAX_BULLETS];
 
 static void DrawImageLine(N64Image *image, int x0, int y0, int x1, int y1)
 {
 	//Implementation of Bresenham line drawing algorithm
 	u8 *data = image->data;
-	int dx =  abs(x1 - x0);
+	int dx =  abs(x1-x0);
 	int sx = x0 < x1 ? 1 : -1;
-	int dy = -abs(y1 - y0);
+	int dy = -abs(y1-y0);
 	int sy = y0 < y1 ? 1 : -1; 
 	int err = dx + dy;
 	int e2;
@@ -118,7 +133,7 @@ static void GenerateAsteroidImages()
 	int size = ASTEROID_SIZE;
 	GenerateAsteroidPolygon(side_x, side_y, size/2, size/2, size/2);
 	for(int i=0; i<ASTEROID_NUM_SIZES; i++) {
-		for(int j=0; j<ASTEROID_ROT_STEPS/4; j++) {
+		for(int j=0; j<ASTEROID_ROT_STEPS; j++) {
 			//Initialize asteroid
 			asteroid_images[i][j] = ImageCreate(size, size, IMG_FMT_I8);
 			ClearImage(asteroid_images[i][j]);
@@ -129,10 +144,10 @@ static void GenerateAsteroidImages()
 			//Refresh asteroid
 			ImageFlushData(asteroid_images[i][j]);
 			//Goto next side of asteroid
-			RotatePoints(90.0f/((ASTEROID_ROT_STEPS/4)-1), size/2, size/2, side_x, side_y, ASTEROID_SIDE_COUNT+1);
+			RotatePoints(360.0f/ASTEROID_ROT_STEPS, size/2, size/2, side_x, side_y, ASTEROID_SIDE_COUNT+1);
 		}
 		//Unrotate asteroid
-		RotatePoints(-90.0f-(90.0f/((ASTEROID_ROT_STEPS/4)-1)), size/2, size/2, side_x, side_y, ASTEROID_SIDE_COUNT+1);
+		RotatePoints(-360.0f, size/2, size/2, side_x, side_y, ASTEROID_SIDE_COUNT+1);
 		for(int j=0; j<ASTEROID_SIDE_COUNT+1; j++) {
 			//Halve side coordinates
 			side_x[j] /= 2;
@@ -143,9 +158,8 @@ static void GenerateAsteroidImages()
 	}
 }
 
-static void ShipInit()
+static void ResetShip()
 {
-	ship.image = ImageCreate(SHIP_IMAGE_W, SHIP_IMAGE_H, IMG_FMT_I8);
 	//Center ship
 	ship.x = GfxGetWidth()/2;
 	ship.y = GfxGetHeight()/2;
@@ -156,26 +170,54 @@ static void ShipInit()
 	ship.vel_x = ship.vel_y = 0;
 }
 
+static void InitShip()
+{
+	ship.image = ImageCreate(SHIP_IMAGE_W, SHIP_IMAGE_H, IMG_FMT_I8);
+	ResetShip();
+}
+
+static void InitBullets()
+{
+	for(int i=0; i<MAX_BULLETS; i++) {
+		bullets[i].exists = false;
+	}
+}
+
+static void MakeAsteroid(int size, float x, float y, float vel_x, float vel_y)
+{
+	int i;
+	for(i=0; i<MAX_ASTEROIDS; i++) {
+		if(!asteroids[i].exists) {
+			break;
+		}
+	}
+	if(i == MAX_ASTEROIDS) {
+		return;
+	}
+	asteroids[i].exists = true;
+	asteroids[i].size = size;
+	asteroids[i].x = x;
+	asteroids[i].y = y;
+	asteroids[i].vel_x = vel_x;
+	asteroids[i].vel_y = vel_y;
+	asteroids[i].exist_timer = 0;
+}
+
+static void InitAsteroids()
+{
+	for(int i=0; i<MAX_ASTEROIDS; i++) {
+		asteroids[i].exists = false;
+	}
+	MakeAsteroid(0, (ASTEROID_SIZE*6)/8, (ASTEROID_SIZE*6)/8, (ASTEROID_VEL*4)/5, -(ASTEROID_VEL*3)/5);
+	MakeAsteroid(0, GfxGetWidth()-(ASTEROID_SIZE*6)/8, (ASTEROID_SIZE*6)/8, (ASTEROID_VEL*7)/8, -(ASTEROID_VEL*1)/2);
+}
+
 static void StateInit()
 {
 	GenerateAsteroidImages();
-	ShipInit();
-}
-
-static void UpdateShipImage()
-{
-	float c, s;
-	//Ship point arrays
-	float ship_points_x[3] = { (SHIP_IMAGE_W/2), (-SHIP_W/2)+(SHIP_IMAGE_W/2), (SHIP_W/2)+(SHIP_IMAGE_W/2) };
-	float ship_points_y[3] = { (SHIP_IMAGE_H/2)+(-(SHIP_H*2)/3), (SHIP_IMAGE_H/2)+(SHIP_H/3), (SHIP_IMAGE_H/2)+(SHIP_H/3) };
-	ClearImage(ship.image);
-	//Calculate ship points
-	RotatePoints(ship.angle, ship.image->w/2, ship.image->h/2, ship_points_x, ship_points_y, 3);
-	//Draw ship edges
-	DrawImageLine(ship.image, ship_points_x[0], ship_points_y[0], ship_points_x[1], ship_points_y[1]);
-	DrawImageLine(ship.image, ship_points_x[0], ship_points_y[0], ship_points_x[2], ship_points_y[2]);
-	DrawImageLine(ship.image, ship_points_x[1], ship_points_y[1], ship_points_x[2], ship_points_y[2]);
-	ImageFlushData(ship.image);
+	InitShip();
+	InitBullets();
+	InitAsteroids();
 }
 
 static void WrapPos(int margin_x, int margin_y, float *x, float *y)
@@ -197,7 +239,7 @@ static void WrapPos(int margin_x, int margin_y, float *x, float *y)
 	}
 }
 
-static void CreateBullet()
+static void MakeBullet()
 {
 	int i;
 	for(i=0; i<MAX_BULLETS; i++) {
@@ -218,6 +260,29 @@ static void CreateBullet()
 	bullets[i].exists = true;
 }
 
+static void UpdateShipImage()
+{
+	float c, s;
+	//Ship point arrays
+	float ship_points_x[3] = { (SHIP_IMAGE_W/2), (-SHIP_W/2)+(SHIP_IMAGE_W/2), (SHIP_W/2)+(SHIP_IMAGE_W/2) };
+	float ship_points_y[3] = { (SHIP_IMAGE_H/2)+(-(SHIP_H*2)/3), (SHIP_IMAGE_H/2)+(SHIP_H/3), (SHIP_IMAGE_H/2)+(SHIP_H/3) };
+	ClearImage(ship.image);
+	//Calculate ship points
+	RotatePoints(ship.angle, ship.image->w/2, ship.image->h/2, ship_points_x, ship_points_y, 3);
+	//Draw ship edges
+	DrawImageLine(ship.image, ship_points_x[0], ship_points_y[0], ship_points_x[1], ship_points_y[1]);
+	DrawImageLine(ship.image, ship_points_x[0], ship_points_y[0], ship_points_x[2], ship_points_y[2]);
+	DrawImageLine(ship.image, ship_points_x[1], ship_points_y[1], ship_points_x[2], ship_points_y[2]);
+	ImageFlushData(ship.image);
+}
+
+static bool IsPointInCircle(float x, float y, float circle_x, float circle_y, float radius)
+{
+	float dx = x-circle_x;
+	float dy = y-circle_y;
+	return (dx*dx)+(dy*dy) < radius*radius;
+}
+
 static void UpdateShip()
 {
 	s8 stick_x = PadGetStickX(0);
@@ -232,7 +297,7 @@ static void UpdateShip()
 		ship.vel_y += -cosf(ship.angle*M_DTOR)*SHIP_THRUST;
 	}
 	if(PadGetPressedButtons(0) & B_BUTTON) {
-		CreateBullet();
+		MakeBullet();
 	}
 	//Clamp ship velocity
 	if(ship.vel_x < -SHIP_MAX_VEL) {
@@ -257,6 +322,16 @@ static void UpdateShip()
 		UpdateShipImage();
 		ship.update_image = false;
 	}
+	for(int i=0; i<MAX_ASTEROIDS; i++) {
+		if(asteroids[i].exists) {
+			float size = ASTEROID_SIZE >> asteroids[i].size;
+			size *= (1-(ASTEROID_RAD_NOISE/2));
+			if(IsPointInCircle(ship.x, ship.y, asteroids[i].x, asteroids[i].y, size/2)) {
+				ResetShip();
+			}
+		}
+		
+	}
 }
 
 static void UpdateBullets()
@@ -269,24 +344,83 @@ static void UpdateBullets()
 				bullets[i].exists = false;
 				continue;
 			}
+			for(int j=0; j<MAX_ASTEROIDS; j++) {
+				if(asteroids[j].exists) {
+					//Try to blow up asteroid
+					float size = ASTEROID_SIZE >> asteroids[j].size;
+					size *= (1-(ASTEROID_RAD_NOISE/2));
+					if(IsPointInCircle(bullets[i].x, bullets[i].y, asteroids[j].x, asteroids[j].y, size/2)) {
+						//Asteroid hit
+						if(asteroids[j].size+1 < ASTEROID_NUM_SIZES) {
+							//Create two child asteroids with random velocity vectors
+							//at asteroid's location
+							float angle1 = ((double)rand()/RAND_MAX)*360*M_DTOR;
+							float angle2 = ((double)rand()/RAND_MAX)*360*M_DTOR;
+							float vel_x1 = ASTEROID_VEL*cosf(angle1);
+							float vel_y1 = -ASTEROID_VEL*cosf(angle1);
+							float vel_x2 = ASTEROID_VEL*cosf(angle2);
+							float vel_y2 = -ASTEROID_VEL*cosf(angle2);
+							MakeAsteroid(asteroids[j].size+1, asteroids[j].x, asteroids[j].y, vel_x1, vel_y1);
+							MakeAsteroid(asteroids[j].size+1, asteroids[j].x, asteroids[j].y, vel_x2, vel_y2);
+						}
+						//Destroy asteroid and bullet
+						asteroids[j].exists = false;
+						bullets[i].exists = false;
+						goto end;
+					}
+				}
+			}
 			//Move bullet
 			bullets[i].x += bullets[i].vel_x;
 			bullets[i].y += bullets[i].vel_y;
 			//Wrap bullet
 			WrapPos(0, 0, &bullets[i].x, &bullets[i].y);
 		}
+		end:
+	}
+}
+
+static void UpdateAsteroids()
+{
+	for(int i=0; i<MAX_ASTEROIDS; i++) {
+		if(asteroids[i].exists) {
+			int size = ASTEROID_SIZE >> asteroids[i].size;
+			asteroids[i].exist_timer++;
+			asteroids[i].x += asteroids[i].vel_x;
+			asteroids[i].y += asteroids[i].vel_y;
+			WrapPos(size/2, size/2, &asteroids[i].x, &asteroids[i].y);
+		}
+	}
+}
+
+static void UnclearField()
+{
+	bool field_empty = true;
+	for(int i=0; i<MAX_ASTEROIDS; i++) {
+		if(asteroids[i].exists) {
+			field_empty = false;
+			break;
+		}
+	}
+	if(field_empty) {
+		float s = cosf(ship.angle);
+		float c = sinf(ship.angle);
+		MakeAsteroid(0, -(c*ASTEROID_RESPAWN_RADIUS)+ship.x, -(s*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);
+		MakeAsteroid(0, (c*ASTEROID_RESPAWN_RADIUS)+ship.x, (s*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);
 	}
 }
 
 static void StateMain()
 {
 	UpdateShip();
+	UpdateAsteroids();
 	UpdateBullets();
+	UnclearField();
 }
 
-static void PutSpriteCenter(N64Image *image, float x, float y)
+static void PutSpriteCenter(N64Image *image, float x, float y, u32 color)
 {
-	ImagePut(image, x-(image->w/2), y-(image->h/2));
+	ImagePutTint(image, x-(image->w/2), y-(image->h/2), color);
 }
 
 static void DrawBullets()
@@ -299,23 +433,27 @@ static void DrawBullets()
 	}
 }
 
+static void DrawAsteroids()
+{
+	for(int i=0; i<MAX_ASTEROIDS; i++) {
+		if(asteroids[i].exists) {
+			int frame = (asteroids[i].exist_timer/ASTEROID_ROT_DELAY) % ASTEROID_ROT_STEPS;
+			PutSpriteCenter(asteroid_images[asteroids[i].size][frame], asteroids[i].x, asteroids[i].y, GFX_COLOR_YELLOW);
+		}
+	}
+}
+
 static void StateDraw()
 {
-	PutSpriteCenter(ship.image, ship.x, ship.y);
-	PutSpriteCenter(asteroid_images[0][0], 160, 120);
-	PutSpriteCenter(asteroid_images[1][0], 48, 32);
-	PutSpriteCenter(asteroid_images[1][1], 80, 32);
-	PutSpriteCenter(asteroid_images[1][2], 112, 32);
-	PutSpriteCenter(asteroid_images[1][3], 144, 32);
-	PutSpriteCenter(asteroid_images[1][4], 176, 32);
-	PutSpriteCenter(asteroid_images[2][0], 256, 16);
+	PutSpriteCenter(ship.image, ship.x, ship.y, GFX_COLOR_WHITE);
 	DrawBullets();
+	DrawAsteroids();
 }
 
 static void DeleteAsteroidImages()
 {
 	for(int i=0; i<ASTEROID_NUM_SIZES; i++) {
-		for(int j=0; j<ASTEROID_ROT_STEPS/4; j++) {
+		for(int j=0; j<ASTEROID_ROT_STEPS; j++) {
 			ImageDelete(asteroid_images[i][j]);
 			asteroid_images[i][j] = NULL;
 		}

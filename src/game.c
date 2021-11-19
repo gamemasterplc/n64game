@@ -42,7 +42,7 @@ typedef struct ship {
 	float y;
 	float vel_x;
 	float vel_y;
-	int lives;
+	unsigned int lives;
 	int invulnerable_timer;
 	bool update_image;
 } Ship;
@@ -73,8 +73,8 @@ static N64Image *digits;
 static N64Image *asteroid_images[ASTEROID_NUM_SIZES][ASTEROID_ROT_STEPS];
 static Asteroid asteroids[MAX_ASTEROIDS];
 static Bullet bullets[MAX_BULLETS];
-static int score;
-static int high_score = 0;
+static unsigned int score;
+static unsigned int high_score = 0;
 
 static void DrawImageLine(N64Image *image, int x0, int y0, int x1, int y1)
 {

@@ -27,6 +27,7 @@
 #define SHIP_THRUST 0.1f
 #define SHIP_ROT_SPEED 0.045f
 #define SHIP_MAX_VEL 3.5f
+#define SHIP_INVULNERABLE_LEN 60
 
 typedef struct ship {
 	N64Image *image;
@@ -35,6 +36,7 @@ typedef struct ship {
 	float y;
 	float vel_x;
 	float vel_y;
+	int invulnerable_timer;
 	bool update_image;
 } Ship;
 
@@ -168,6 +170,7 @@ static void ResetShip()
 	ship.update_image = true;
 	//Stop ship
 	ship.vel_x = ship.vel_y = 0;
+	ship.invulnerable_timer = SHIP_INVULNERABLE_LEN;
 }
 
 static void InitShip()
@@ -317,14 +320,18 @@ static void UpdateShip()
 	ship.y += ship.vel_y;
 	//Wrap ship
 	WrapPos(SHIP_IMAGE_W/2, SHIP_IMAGE_H/2, &ship.x, &ship.y);
-	for(int i=0; i<MAX_ASTEROIDS; i++) {
-		if(asteroids[i].exists) {
-			float size = ASTEROID_SIZE >> asteroids[i].size;
-			size *= (1-(ASTEROID_RAD_NOISE/2));
-			if(IsPointInCircle(ship.x, ship.y, asteroids[i].x, asteroids[i].y, size/2)) {
-				ResetShip();
+	if(ship.invulnerable_timer == 0) {
+		for(int i=0; i<MAX_ASTEROIDS; i++) {
+			if(asteroids[i].exists) {
+				float size = ASTEROID_SIZE >> asteroids[i].size;
+				size *= (1-(ASTEROID_RAD_NOISE/2));
+				if(IsPointInCircle(ship.x, ship.y, asteroids[i].x, asteroids[i].y, size/2)) {
+					ResetShip();
+				}
 			}
 		}
+	} else {
+		ship.invulnerable_timer--;
 	}
 	if(ship.update_image) {
 		//Refresh ship if needed
@@ -422,6 +429,13 @@ static void PutSpriteCenter(N64Image *image, float x, float y, u32 color)
 	ImagePutTint(image, x-(image->w/2), y-(image->h/2), color);
 }
 
+static void DrawShip()
+{
+	if(ship.invulnerable_timer < 6 || ship.invulnerable_timer % 4 == 0) {
+		PutSpriteCenter(ship.image, ship.x, ship.y, GFX_COLOR_WHITE);
+	}
+}
+
 static void DrawBullets()
 {
 	for(int i=0; i<MAX_BULLETS; i++) {
@@ -444,7 +458,7 @@ static void DrawAsteroids()
 
 static void StateDraw()
 {
-	PutSpriteCenter(ship.image, ship.x, ship.y, GFX_COLOR_WHITE);
+	DrawShip();
 	DrawBullets();
 	DrawAsteroids();
 }

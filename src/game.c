@@ -469,6 +469,8 @@ static void StateMain()
 			score = 0;
 			ResetShip();
 			InitAsteroids();
+		} else if(PadGetPressedButtons(0) & B_BUTTON) {
+			
 		}
 	}
 }

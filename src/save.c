@@ -1,5 +1,7 @@
 #include <nusys.h>
 #include "bool.h"
+#include "gfx.h"
+#include "save.h"
 
 u8 save_data[8];
 static bool used_save;
@@ -26,11 +28,21 @@ static u16 GetSaveMagic()
 void SaveSetWide(bool flag)
 {
 	save_data[3] = flag;
+	if(flag) {
+		GfxSetScreenSize(424, 240);
+	} else {
+		GfxSetScreenSize(320, 240);
+	}
 }
 
 void SaveToggleWide()
 {
 	save_data[3] ^= 1;
+	if(save_data[3]) {
+		GfxSetScreenSize(424, 240);
+	} else {
+		GfxSetScreenSize(320, 240);
+	}
 }
 
 bool SaveGetWide()

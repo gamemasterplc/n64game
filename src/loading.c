@@ -8,11 +8,6 @@ static N64Image *loading;
 
 static void StateInit()
 {
-	if(SaveGetWide()) {
-		GfxSetScreenSize(424, 240);
-	} else {
-		GfxSetScreenSize(320, 240);
-	}
 	loading = ImageLoad("/gfx/loading.i8.img");
 }
 

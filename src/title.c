@@ -25,11 +25,7 @@ static void StateMain()
 {
 	if(PadGetPressedButtons(0) & START_BUTTON) {
 		if(PadGetHeldButtons(0) & Z_TRIG) {
-			if(SaveGetWide()) {
-				SaveSetWide(false);
-			} else {
-				SaveSetWide(true);
-			}
+			SaveToggleWide();
 			SaveUpdate();
 		}
 		StateSetNext(STATE_LOADING);

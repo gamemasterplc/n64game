@@ -431,7 +431,7 @@ static void PutSpriteCenter(N64Image *image, float x, float y, u32 color)
 
 static void DrawShip()
 {
-	if(ship.invulnerable_timer < 6 || ship.invulnerable_timer % 4 == 0) {
+	if(ship.invulnerable_timer < 6 || ship.invulnerable_timer & 0x2) {
 		PutSpriteCenter(ship.image, ship.x, ship.y, GFX_COLOR_WHITE);
 	}
 }

@@ -28,6 +28,10 @@
 #define SHIP_ROT_SPEED 0.045f
 #define SHIP_MAX_VEL 3.5f
 #define SHIP_INVULNERABLE_LEN 60
+#define SHIP_NUM_LIVES 5
+
+#define LIFE_X 22
+#define LIFE_Y 16
 
 typedef struct ship {
 	N64Image *image;
@@ -36,6 +40,7 @@ typedef struct ship {
 	float y;
 	float vel_x;
 	float vel_y;
+	int lives;
 	int invulnerable_timer;
 	bool update_image;
 } Ship;
@@ -60,6 +65,9 @@ typedef struct asteroid {
 } Asteroid;
 
 static Ship ship;
+static N64Image *life_icon;
+static N64Image *life_cross;
+static N64Image *digits;
 static N64Image *asteroid_images[ASTEROID_NUM_SIZES][ASTEROID_ROT_STEPS];
 static Asteroid asteroids[MAX_ASTEROIDS];
 static Bullet bullets[MAX_BULLETS];
@@ -176,10 +184,11 @@ static void ResetShip()
 static void InitShip()
 {
 	ship.image = ImageCreate(SHIP_IMAGE_W, SHIP_IMAGE_H, IMG_FMT_I8);
+	ship.lives = SHIP_NUM_LIVES;
 	ResetShip();
 }
 
-static void ResetBullets()
+static void ClearBullets()
 {
 	for(int i=0; i<MAX_BULLETS; i++) {
 		bullets[i].exists = false;
@@ -219,8 +228,11 @@ static void StateInit()
 {
 	GenerateAsteroidImages();
 	InitShip();
-	ResetBullets();
+	ClearBullets();
 	InitAsteroids();
+	life_icon = ImageLoad("/gfx/life_icon.i8.img");
+	life_cross = ImageLoad("/gfx/life_cross.i8.img");
+	digits = ImageLoad("/gfx/digits.i8.img");
 }
 
 static void WrapPos(int margin_x, int margin_y, float *x, float *y)
@@ -326,7 +338,13 @@ static void UpdateShip()
 				float size = ASTEROID_SIZE >> asteroids[i].size;
 				size *= (1-(ASTEROID_RAD_NOISE/2));
 				if(IsPointInCircle(ship.x, ship.y, asteroids[i].x, asteroids[i].y, size/2)) {
-					ResetShip();
+					ship.lives--;
+					if(ship.lives > 0) {
+						ResetShip();
+					} else {
+						ClearBullets();
+					}
+					break;
 				}
 			}
 		}
@@ -409,7 +427,7 @@ static void UnclearField()
 		}
 	}
 	if(field_empty) {
-		ResetBullets();
+		ClearBullets();
 		float s = cosf(ship.angle*M_DTOR);
 		float c = sinf(ship.angle*M_DTOR);
 		MakeAsteroid(0, -(s*ASTEROID_RESPAWN_RADIUS)+ship.x, (c*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);
@@ -419,10 +437,14 @@ static void UnclearField()
 
 static void StateMain()
 {
-	UpdateShip();
-	UpdateAsteroids();
-	UpdateBullets();
-	UnclearField();
+	if(ship.lives > 0) {
+		UpdateShip();
+		UpdateAsteroids();
+		UpdateBullets();
+		UnclearField();
+	} else {
+		UpdateAsteroids();
+	}
 }
 
 static void PutSpriteCenter(N64Image *image, float x, float y, u32 color)
@@ -432,6 +454,7 @@ static void PutSpriteCenter(N64Image *image, float x, float y, u32 color)
 
 static void DrawShip()
 {
+	//Hide if not in last tenth of second of invulnerability
 	if(ship.invulnerable_timer < 6 || ship.invulnerable_timer & 0x2) {
 		PutSpriteCenter(ship.image, ship.x, ship.y, GFX_COLOR_WHITE);
 	}
@@ -457,11 +480,27 @@ static void DrawAsteroids()
 	}
 }
 
+static void DrawLives()
+{
+	char life_str[11];
+	int life_len;
+	ImagePut(life_icon, LIFE_X, LIFE_Y);
+	ImagePut(life_cross, LIFE_X+12, LIFE_Y+5);
+	sprintf(life_str, "%d", ship.lives);
+	life_len = strlen(life_str);
+	for(int i=0; i<life_len; i++) {
+		ImagePutPartial(digits, LIFE_X+20+(i*8), LIFE_Y+3, (life_str[i]-'0')*8, 0, 8, 12);
+	}
+}
+
 static void StateDraw()
 {
-	DrawShip();
-	DrawBullets();
+	if(ship.lives > 0) {
+		DrawShip();
+		DrawBullets();
+	}
 	DrawAsteroids();
+	DrawLives();
 }
 
 static void DeleteAsteroidImages()
@@ -479,6 +518,12 @@ static void StateDestroy()
 	ImageDelete(ship.image);
 	ship.image = NULL;
 	DeleteAsteroidImages();
+	ImageDelete(life_icon);
+	life_icon = NULL;
+	ImageDelete(life_cross);
+	life_cross = NULL;
+	ImageDelete(digits);
+	digits = NULL;
 }
 
 StateEntry Game_StateData = {

@@ -164,7 +164,12 @@ int GetBestImageFormat(uint8_t *image_data, int image_w, int image_h)
 			int colors = CountImageColors(image_data, image_w, image_h);
 			if(colors <= 16) {
 				//Use CI4 if no more than 16 colors are present
-				return IMG_FMT_CI4;
+				if(image_w % 2 != 0) {
+					//But force CI8 if width is odd
+					return IMG_FMT_CI8;
+				} else {
+					return IMG_FMT_CI4;
+				}
 			} else if(colors <= 256) {
 				//Use CI8 if between 16 and 256 colors are present
 				return IMG_FMT_CI8;
@@ -183,7 +188,12 @@ int GetBestImageFormat(uint8_t *image_data, int image_w, int image_h)
 			int colors = CountImageColors(image_data, image_w, image_h);
 			if(colors <= 16) {
 				//Use CI4 if no more than 16 colors are present
-				return IMG_FMT_CI4;
+				if(image_w % 2 != 0) {
+					//But force CI8 if width is odd
+					return IMG_FMT_CI8;
+				} else {
+					return IMG_FMT_CI4;
+				}
 			} else if(colors <= 256) {
 				//Use CI8 if between 16 and 256 colors are present
 				return IMG_FMT_CI8;
@@ -558,6 +568,13 @@ int main(int argc, char **argv)
 	if(!image_data) {
 		std::cout << "Failed to load " << in_name << ". Cause " << stbi_failure_reason() << "." << std::endl;
 		return 1;
+	}
+	if(image_w % 2 != 0) {
+		if(format == IMG_FMT_I4 || format == IMG_FMT_IA4 || format == IMG_FMT_CI4) {
+			std::cout << "Image formats I4, IA4, or CI4 are invalid for odd width images." << std::endl;
+			stbi_image_free(image_data);
+			return 1;
+		}
 	}
 	//Determine best image format if one is not provided or invalid
 	if(format == -1) {

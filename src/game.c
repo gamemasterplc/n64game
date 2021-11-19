@@ -30,8 +30,10 @@
 #define SHIP_INVULNERABLE_LEN 60
 #define SHIP_NUM_LIVES 5
 
+#define SCORE_X 22
+#define SCORE_Y 16
 #define LIFE_X 22
-#define LIFE_Y 16
+#define LIFE_Y 28
 
 typedef struct ship {
 	N64Image *image;
@@ -71,6 +73,8 @@ static N64Image *digits;
 static N64Image *asteroid_images[ASTEROID_NUM_SIZES][ASTEROID_ROT_STEPS];
 static Asteroid asteroids[MAX_ASTEROIDS];
 static Bullet bullets[MAX_BULLETS];
+static int score;
+static int high_score = 0;
 
 static void DrawImageLine(N64Image *image, int x0, int y0, int x1, int y1)
 {
@@ -226,10 +230,11 @@ static void InitAsteroids()
 
 static void StateInit()
 {
-	GenerateAsteroidImages();
 	InitShip();
 	ClearBullets();
 	InitAsteroids();
+	score = 0;
+	GenerateAsteroidImages();
 	life_icon = ImageLoad("/gfx/life_icon.i8.img");
 	life_cross = ImageLoad("/gfx/life_cross.i8.img");
 	digits = ImageLoad("/gfx/digits.i8.img");
@@ -342,6 +347,9 @@ static void UpdateShip()
 					if(ship.lives > 0) {
 						ResetShip();
 					} else {
+						if(score > high_score) {
+							high_score = score;
+						}
 						ClearBullets();
 					}
 					break;
@@ -390,6 +398,7 @@ static void UpdateBullets()
 						//Destroy asteroid and bullet
 						asteroids[j].exists = false;
 						bullets[i].exists = false;
+						score += 100;
 						goto end;
 					}
 				}
@@ -427,6 +436,7 @@ static void UnclearField()
 		}
 	}
 	if(field_empty) {
+		score += 1000;
 		ClearBullets();
 		float s = cosf(ship.angle*M_DTOR);
 		float c = sinf(ship.angle*M_DTOR);
@@ -486,10 +496,34 @@ static void DrawLives()
 	int life_len;
 	ImagePut(life_icon, LIFE_X, LIFE_Y);
 	ImagePut(life_cross, LIFE_X+12, LIFE_Y+5);
-	sprintf(life_str, "%d", ship.lives);
+	sprintf(life_str, "%u", ship.lives);
 	life_len = strlen(life_str);
 	for(int i=0; i<life_len; i++) {
 		ImagePutPartial(digits, LIFE_X+20+(i*8), LIFE_Y+3, (life_str[i]-'0')*8, 0, 8, 12);
+	}
+}
+
+static void DrawScore()
+{
+	char score_str[11];
+	int score_len;
+	sprintf(score_str, "%u", score);
+	score_len = strlen(score_str);
+	for(int i=0; i<score_len; i++) {
+		ImagePutPartial(digits, SCORE_X+(i*8), SCORE_Y, (score_str[i]-'0')*8, 0, 8, 12);
+	}
+}
+
+static void DrawHighScore()
+{
+	char score_str[11];
+	int score_len;
+	int x_pos;
+	sprintf(score_str, "%u", high_score);
+	score_len = strlen(score_str);
+	x_pos = (GfxGetWidth()-(8*score_len))/2;
+	for(int i=0; i<score_len; i++) {
+		ImagePutPartial(digits, x_pos+(i*8), SCORE_Y, (score_str[i]-'0')*8, 0, 8, 12);
 	}
 }
 
@@ -501,6 +535,8 @@ static void StateDraw()
 	}
 	DrawAsteroids();
 	DrawLives();
+	DrawScore();
+	DrawHighScore();
 }
 
 static void DeleteAsteroidImages()

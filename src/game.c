@@ -217,7 +217,6 @@ static void InitAsteroids()
 
 static void StateInit()
 {
-	GfxSetScreenSize(424, 240);
 	GenerateAsteroidImages();
 	InitShip();
 	ResetBullets();

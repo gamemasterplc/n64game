@@ -24,10 +24,6 @@ static void StateInit()
 static void StateMain()
 {
 	if(PadGetPressedButtons(0) & START_BUTTON) {
-		if(PadGetHeldButtons(0) & Z_TRIG) {
-			SaveToggleWide();
-			SaveUpdate();
-		}
 		StateSetNext(STATE_LOADING);
 	}
 	if(PadGetHeldButtons(0) & L_TRIG) {
@@ -35,6 +31,10 @@ static void StateMain()
 			SaveReset();
 			SaveUpdate();
 		}
+	}
+	if(PadGetPressedButtons(0) & Z_TRIG) {
+		SaveToggleWide();
+		SaveUpdate();
 	}
 }
 

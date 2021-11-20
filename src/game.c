@@ -10,12 +10,14 @@ static Ship ship;
 static N64Image *life_icon;
 static N64Image *life_cross;
 static N64Image *digits;
+static N64Image *paused;
 static N64Image *game_over;
 static N64Image *text_exit;
 static N64Image *text_retry;
 static N64Image *asteroid_images[ASTEROID_NUM_SIZES][ASTEROID_ROT_STEPS];
 static Asteroid asteroids[MAX_ASTEROIDS];
 static Bullet bullets[MAX_BULLETS];
+static bool pause_flag;
 static unsigned int score;
 
 static void DrawImageLine(N64Image *image, int x0, int y0, int x1, int y1)
@@ -176,13 +178,15 @@ static void StateInit()
 	ClearBullets();
 	InitAsteroids();
 	score = 0;
+	pause_flag = false;
 	GenerateAsteroidImages();
 	life_icon = ImageLoad("/gfx/life_icon.i8.img");
 	life_cross = ImageLoad("/gfx/life_cross.i8.img");
 	digits = ImageLoad("/gfx/digits.i8.img");
-	game_over =  ImageLoad("/gfx/game_over.i8.img");
-	text_exit =  ImageLoad("/gfx/text_exit.i8.img");
-	text_retry =  ImageLoad("/gfx/text_retry.i8.img");
+	game_over = ImageLoad("/gfx/game_over.i8.img");
+	text_exit = ImageLoad("/gfx/text_exit.i8.img");
+	text_retry = ImageLoad("/gfx/text_retry.i8.img");
+	paused =  ImageLoad("/gfx/paused.i8.img");
 }
 
 static void WrapPos(int margin_x, int margin_y, float *x, float *y)
@@ -393,10 +397,19 @@ static void UnclearField()
 static void StateMain()
 {
 	if(ship.lives > 0) {
-		UpdateShip();
-		UpdateAsteroids();
-		UpdateBullets();
-		UnclearField();
+		if(pause_flag) {
+			if(PadGetPressedButtons(0) & START_BUTTON) {
+				pause_flag = false;
+			}
+		} else {
+			UpdateShip();
+			UpdateAsteroids();
+			UpdateBullets();
+			UnclearField();
+			if(PadGetPressedButtons(0) & START_BUTTON) {
+				pause_flag = true;
+			}
+		}
 	} else {
 		UpdateAsteroids();
 		if(PadGetPressedButtons(0) & A_BUTTON) {
@@ -491,10 +504,13 @@ static void StateDraw()
 	DrawLives();
 	DrawScore();
 	DrawHighScore();
+	if(pause_flag) {
+		PutSpriteCenter(paused, GfxGetWidth()/2, GfxGetHeight()/2, GFX_COLOR_WHITE);
+	}
 	if(ship.lives <= 0) {
 		int scr_w = GfxGetWidth();
 		int scr_h = GfxGetHeight();
-		PutSpriteCenter(game_over,scr_w/2, scr_h/2, GFX_COLOR_WHITE);
+		PutSpriteCenter(game_over, scr_w/2, scr_h/2, GFX_COLOR_WHITE);
 		PutSpriteCenter(text_exit, scr_w/2, (scr_h-Y_MARGIN-(TEXT_H/2)), GFX_COLOR_WHITE);
 		PutSpriteCenter(text_retry, scr_w/2, (scr_h-Y_MARGIN-((TEXT_H*3)/2)), GFX_COLOR_WHITE);
 	}
@@ -527,6 +543,8 @@ static void StateDestroy()
 	text_exit = NULL;
 	ImageDelete(text_retry);
 	text_retry = NULL;
+	ImageDelete(paused);
+	paused = NULL;
 }
 
 StateEntry Game_StateData = {

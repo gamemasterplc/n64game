@@ -3,6 +3,7 @@
 #include "state.h"
 #include "pad.h"
 #include "save.h"
+#include "libcext.h"
 
 #define DEFINE_STATE(_0, name) extern StateEntry name##_StateData;
 #include "state_table.h"
@@ -37,6 +38,7 @@ void mainproc()
 		StateEntry *state = states[curr_state];
 		state->init();
 		while(next_state == curr_state) {
+			rand(); //Tick RNG every frame for more randomization
 			PadUpdate();
 			state->main();
 			GfxStartFrame();

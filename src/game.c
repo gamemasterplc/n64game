@@ -237,7 +237,7 @@ static void UpdateShipImage()
 	float ship_points_y[4] = { (SHIP_IMAGE_H/2)+(-(SHIP_H*2)/3), (SHIP_IMAGE_H/2)+(SHIP_H/3), (SHIP_IMAGE_H/2)+(SHIP_H/3), (SHIP_IMAGE_H/2) };
 	ClearImage(ship.image);
 	//Calculate ship points
-	RotatePoints(ship.angle, ship.image->w/2, ship.image->h/2, ship_points_x, ship_points_y, 4);
+	RotatePoints(ship.angle, SHIP_IMAGE_W/2, SHIP_IMAGE_H/2, ship_points_x, ship_points_y, 4);
 	//Draw ship edges
 	DrawImageLine(ship.image, ship_points_x[0], ship_points_y[0], ship_points_x[1], ship_points_y[1]);
 	DrawImageLine(ship.image, ship_points_x[0], ship_points_y[0], ship_points_x[2], ship_points_y[2]);

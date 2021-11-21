@@ -3,7 +3,7 @@
 #include "gfx.h"
 #include "save.h"
 
-u8 save_data[8];
+static u8 save_data[8];
 static bool used_save;
 
 static u8 GetSaveChecksum()

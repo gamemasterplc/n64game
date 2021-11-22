@@ -339,9 +339,9 @@ static void UpdateBullets()
 							float angle1 = ((double)rand()/RAND_MAX)*360*M_DTOR;
 							float angle2 = ((double)rand()/RAND_MAX)*360*M_DTOR;
 							float vel_x1 = ASTEROID_VEL*cosf(angle1);
-							float vel_y1 = -ASTEROID_VEL*cosf(angle1);
+							float vel_y1 = -ASTEROID_VEL*sinf(angle1);
 							float vel_x2 = ASTEROID_VEL*cosf(angle2);
-							float vel_y2 = -ASTEROID_VEL*cosf(angle2);
+							float vel_y2 = -ASTEROID_VEL*sinf(angle2);
 							MakeAsteroid(asteroids[j].size+1, asteroids[j].x, asteroids[j].y, vel_x1, vel_y1);
 							MakeAsteroid(asteroids[j].size+1, asteroids[j].x, asteroids[j].y, vel_x2, vel_y2);
 						}

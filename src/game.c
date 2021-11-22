@@ -271,7 +271,7 @@ static void UpdateShip()
 		ship.vel_x -= sinf(ship.angle*M_DTOR)*SHIP_THRUST;
 		ship.vel_y -= -cosf(ship.angle*M_DTOR)*SHIP_THRUST;
 	}
-	if(PadGetPressedButtons(0) & Z_BUTTON) {
+	if(PadGetPressedButtons(0) & Z_TRIG) {
 		MakeBullet();
 	}
 	//Clamp ship velocity

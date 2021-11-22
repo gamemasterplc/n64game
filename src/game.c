@@ -267,9 +267,9 @@ static void UpdateShip()
 		ship.vel_y += -cosf(ship.angle*M_DTOR)*SHIP_THRUST;
 	}
 	if(PadGetHeldButtons(0) & B_BUTTON) {
-		//Apply ship thrust
-		ship.vel_x -= sinf(ship.angle*M_DTOR)*SHIP_THRUST;
-		ship.vel_y -= -cosf(ship.angle*M_DTOR)*SHIP_THRUST;
+		//Apply ship reverse thrust
+		ship.vel_x -= sinf(ship.angle*M_DTOR)*SHIP_REVERSE_THRUST;
+		ship.vel_y -= -cosf(ship.angle*M_DTOR)*SHIP_REVERSE_THRUST;
 	}
 	if(PadGetPressedButtons(0) & Z_TRIG) {
 		MakeBullet();
@@ -396,7 +396,7 @@ static void UnclearField()
 		float s = cosf(ship.angle*M_DTOR);
 		float c = sinf(ship.angle*M_DTOR);
 		MakeAsteroid(0, -(s*ASTEROID_RESPAWN_RADIUS)+ship.x, (c*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);
-		MakeAsteroid(0, (s*ASTEROID_RESPAWN_RADIUS)+ship.x, -(c*ASTEROID_RESPAWN_RADIUS)+ship.y, -ASTEROID_VEL*s, -ASTEROID_VEL*c);
+		MakeAsteroid(0, (s*ASTEROID_RESPAWN_RADIUS)+ship.x, -(c*ASTEROID_RESPAWN_RADIUS)+ship.y, -ASTEROID_VEL*s, ASTEROID_VEL*c);
 	}
 }
 

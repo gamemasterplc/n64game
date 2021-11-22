@@ -3,7 +3,7 @@
 #include "image.h"
 #include "bool.h"
 
-#define ASTEROID_RESPAWN_RADIUS 64
+#define ASTEROID_RESPAWN_RADIUS 100
 #define ASTEROID_VEL 1.0f
 #define ASTEROID_NUM_SIZES 3
 #define ASTEROID_SIZE 64
@@ -22,6 +22,7 @@
 #define SHIP_W 14
 #define SHIP_H 21
 #define SHIP_THRUST 0.1f
+#define SHIP_REVERSE_THRUST 0.05f
 #define SHIP_ROT_SPEED 0.045f
 #define SHIP_MAX_VEL 3.5f
 #define SHIP_INVULNERABLE_LEN 60

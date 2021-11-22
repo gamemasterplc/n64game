@@ -266,7 +266,12 @@ static void UpdateShip()
 		ship.vel_x += sinf(ship.angle*M_DTOR)*SHIP_THRUST;
 		ship.vel_y += -cosf(ship.angle*M_DTOR)*SHIP_THRUST;
 	}
-	if(PadGetPressedButtons(0) & B_BUTTON) {
+	if(PadGetHeldButtons(0) & B_BUTTON) {
+		//Apply ship thrust
+		ship.vel_x -= sinf(ship.angle*M_DTOR)*SHIP_THRUST;
+		ship.vel_y -= -cosf(ship.angle*M_DTOR)*SHIP_THRUST;
+	}
+	if(PadGetPressedButtons(0) & Z_BUTTON) {
 		MakeBullet();
 	}
 	//Clamp ship velocity
@@ -391,7 +396,7 @@ static void UnclearField()
 		float s = cosf(ship.angle*M_DTOR);
 		float c = sinf(ship.angle*M_DTOR);
 		MakeAsteroid(0, -(s*ASTEROID_RESPAWN_RADIUS)+ship.x, (c*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);
-		MakeAsteroid(0, (s*ASTEROID_RESPAWN_RADIUS)+ship.x, -(c*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);
+		MakeAsteroid(0, (s*ASTEROID_RESPAWN_RADIUS)+ship.x, -(c*ASTEROID_RESPAWN_RADIUS)+ship.y, -ASTEROID_VEL*s, -ASTEROID_VEL*c);
 	}
 }
 

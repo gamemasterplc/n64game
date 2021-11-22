@@ -168,7 +168,7 @@ static void InitAsteroids()
 	for(int i=0; i<MAX_ASTEROIDS; i++) {
 		asteroids[i].exists = false;
 	}
-	MakeAsteroid(0, (ASTEROID_SIZE*6)/8, (ASTEROID_SIZE*6)/8, (ASTEROID_VEL*4)/5, -(ASTEROID_VEL*3)/5);
+	MakeAsteroid(0, (ASTEROID_SIZE*6)/8, (ASTEROID_SIZE*6)/8, -(ASTEROID_VEL*4)/5, -(ASTEROID_VEL*3)/5);
 	MakeAsteroid(0, GfxGetWidth()-(ASTEROID_SIZE*6)/8, (ASTEROID_SIZE*6)/8, (ASTEROID_VEL*7)/8, -(ASTEROID_VEL*1)/2);
 }
 
@@ -395,8 +395,8 @@ static void UnclearField()
 		ClearBullets();
 		float s = cosf(ship.angle*M_DTOR);
 		float c = sinf(ship.angle*M_DTOR);
-		MakeAsteroid(0, -(s*ASTEROID_RESPAWN_RADIUS)+ship.x, (c*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);
-		MakeAsteroid(0, (s*ASTEROID_RESPAWN_RADIUS)+ship.x, -(c*ASTEROID_RESPAWN_RADIUS)+ship.y, -ASTEROID_VEL*s, ASTEROID_VEL*c);
+		MakeAsteroid(0, -(s*ASTEROID_RESPAWN_RADIUS)+ship.x, (c*ASTEROID_RESPAWN_RADIUS)+ship.y, -ASTEROID_VEL*s, ASTEROID_VEL*c);
+		MakeAsteroid(0, (s*ASTEROID_RESPAWN_RADIUS)+ship.x, -(c*ASTEROID_RESPAWN_RADIUS)+ship.y, ASTEROID_VEL*s, -ASTEROID_VEL*c);
 	}
 }
 

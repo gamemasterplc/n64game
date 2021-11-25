@@ -53,7 +53,7 @@ static void StateDraw()
 		ImagePut(start_text, (GfxGetWidth()-start_text->w)/2, GfxGetHeight()-MARGIN_Y-start_text->h);
 	}
 	if(SaveGetWide()) {
-		ImagePut(widescreen, (GfxGetWidth()-widescreen->w-16), MARGIN_Y+logo->h);
+		ImagePut(widescreen, (GfxGetWidth()-widescreen->w-22), MARGIN_Y+logo->h);
 	}
 }
 

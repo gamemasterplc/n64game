@@ -12,6 +12,7 @@ static bool put_loading;
 
 static N64Image *start_text;
 static N64Image *logo;
+static N64Image *widescreen;
 
 static void StateInit()
 {
@@ -22,6 +23,7 @@ static void StateInit()
 		start_text = ImageLoad("/gfx/no_controller.i8.img");
 	}
 	logo = ImageLoad("/gfx/logo.i8.img");
+	widescreen = ImageLoad("/gfx/widescreen.i8.img");
 }
 
 static void StateMain()
@@ -50,6 +52,9 @@ static void StateDraw()
 	if(blink_timer & 0x10) {
 		ImagePut(start_text, (GfxGetWidth()-start_text->w)/2, GfxGetHeight()-MARGIN_Y-start_text->h);
 	}
+	if(SaveGetWide()) {
+		ImagePut(widescreen, (GfxGetWidth()-widescreen->w-16), MARGIN_Y+logo->h);
+	}
 }
 
 static void StateDestroy()
@@ -58,6 +63,13 @@ static void StateDestroy()
 	start_text = NULL;
 	ImageDelete(logo);
 	logo = NULL;
+	ImageDelete(widescreen);
+	widescreen = NULL;
+	if(SaveGetWide()) {
+		GfxSetScreenSize(424, 240);
+	} else {
+		GfxSetScreenSize(320, 240);
+	}
 }
 
 StateEntry Title_StateData = {

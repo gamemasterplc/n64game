@@ -4,16 +4,22 @@
 #include "image.h"
 #include "save.h"
 
+#define LOADING_DELAY 15
+
 static N64Image *loading;
+static int timer;
 
 static void StateInit()
 {
 	loading = ImageLoad("/gfx/loading.i8.img");
+	timer = LOADING_DELAY;
 }
 
 static void StateMain()
 {
-	StateSetNext(STATE_GAME);
+	if(--timer == 0) {
+		StateSetNext(STATE_GAME);
+	}
 }
 
 static void StateDraw()

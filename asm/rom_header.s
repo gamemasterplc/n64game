@@ -11,9 +11,9 @@
 .word  0x00000000 /* Checksum 2 (OVERWRITTEN BY MAKEMASK)*/
 .word  0x00000000 /* Unknown */
 .word  0x00000000 /* Unknown */
-.ascii "No Gfxfunc Nusys    " /* Internal ROM name (Exactly 20 characters) */
+.ascii "ASTEROIDS 64        " /* Internal ROM name (Exactly 20 characters) */
 .byte 0, 0, 0, 0, 0, 0, 0 /* Padding */
 .ascii "N" /* Media Type (Cartridge) */
-.ascii "PL" /* Cartridge ID (PL)*/
+.ascii "AT" /* Cartridge ID (AT)*/
 .ascii "E" /* Region (E)*/
 .byte  0x00 /* Version */

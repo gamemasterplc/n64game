@@ -36,13 +36,11 @@ static void StateMain()
 		if(PadGetPressedButtons(0) & R_TRIG) {
 			SaveReset();
 			SaveUpdate();
-			blink_timer = rand()%32;
 		}
 	}
 	if(PadGetPressedButtons(0) & Z_TRIG) {
 		SaveToggleWide();
 		SaveUpdate();
-		blink_timer = rand()%32;
 	}
 }
 
